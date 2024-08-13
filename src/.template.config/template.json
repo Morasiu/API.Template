@@ -1,0 +1,12 @@
+{
+  "author": "Hubert Morawski",
+  "classifications": [ "Web", "WebApi" ], 
+  "name": " Herodot ASP.Net Core REST API Template",
+  "identity": "Herodot.ASPNet.Template",         
+  "shortName": "herodotapi",
+  "tags": {
+    "language": "C#"
+  },
+  "sourceName": "Template",
+  "preferNameDirectory":"false"
+}
