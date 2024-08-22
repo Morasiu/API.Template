@@ -1,4 +1,3 @@
-using System.Collections;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Template.Application.Requests.Products;

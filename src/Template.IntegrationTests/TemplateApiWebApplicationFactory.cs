@@ -1,7 +1,4 @@
 using System.Data.Common;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -14,19 +11,16 @@ using Template.Api;
 using Template.Persistence;
 using Template.Shared.Services.DateTimeProviders;
 using Template.Tests.Shared.Services.DateTimeProviders;
+using Testcontainers.PostgreSql;
 
 namespace Template.IntegrationTests;
 
 public class TemplateApiWebApplicationFactory : WebApplicationFactory<IApiMarker> {
-	private readonly PostgreSqlTestcontainer _dbContainer = new TestcontainersBuilder<PostgreSqlTestcontainer>()
-	                                                             .WithDatabase(
-		                                                             new PostgreSqlTestcontainerConfiguration(
-			                                                             "postgres:14.7-alpine3.17") {
-			                                                             Database = "application",
-			                                                             Username = "postgres",
-			                                                             Password = "password"
-		                                                             })
-	                                                             .Build();
+	private readonly PostgreSqlContainer _postgreSqlContainer = new PostgreSqlBuilder()
+		                                                            .WithDatabase("application")
+		                                                            .WithUsername("postgres")
+		                                                            .WithPassword("password")
+		                                                            .Build();
 
 
 	public HttpClient HttpClient { get; private set; } = default!;
@@ -38,14 +32,14 @@ public class TemplateApiWebApplicationFactory : WebApplicationFactory<IApiMarker
 	}
 
 	public async Task InitializeAsync() {
-		await _dbContainer.StartAsync();
+		await _postgreSqlContainer.StartAsync();
 		HttpClient = CreateClient();
 		await InitializeRespawner();
 	}
 
 	// ReSharper disable once IdentifierTypo
 	private async Task InitializeRespawner() {
-		_dbConnection = new NpgsqlConnection(_dbContainer.ConnectionString);
+		_dbConnection = new NpgsqlConnection(_postgreSqlContainer.GetConnectionString());
 		await _dbConnection.OpenAsync();
 		_respawner = await Respawner.CreateAsync(_dbConnection, new RespawnerOptions {
 			DbAdapter = DbAdapter.Postgres,
@@ -59,7 +53,7 @@ public class TemplateApiWebApplicationFactory : WebApplicationFactory<IApiMarker
 	public override async ValueTask DisposeAsync() {
 		await base.DisposeAsync();
 		await _dbConnection.CloseAsync();
-		await _dbContainer.StopAsync();
+		await _postgreSqlContainer.StopAsync();
 	}
 
 
@@ -68,27 +62,15 @@ public class TemplateApiWebApplicationFactory : WebApplicationFactory<IApiMarker
 
 		var config = new ConfigurationBuilder()
 		             .AddInMemoryCollection(new Dictionary<string, string?> {
-			             ["ConnectionStrings:Default"] = _dbContainer.ConnectionString
+			             ["ConnectionStrings:Default"] = _postgreSqlContainer.GetConnectionString()
 		             })
 		             .Build();
 		builder.UseConfiguration(config);
-
-		// Doesn't work in .Net 6: https://github.com/dotnet/aspnetcore/issues/37680
-		// builder.ConfigureAppConfiguration((configBuilder) =>
-		// {
-		//     configBuilder.AddInMemoryCollection();
-		// });
 		base.ConfigureWebHost(builder);
-		builder.ConfigureAppConfiguration(configBuilder => {
-			configBuilder.AddInMemoryCollection(
-				new Dictionary<string, string?> {
-					["Serilog:MinimumLevel:Override:Microsoft"] = "Warning"
-				});
-		});
 
 		builder.ConfigureServices(services => {
 			var sp = services.BuildServiceProvider();
-			
+
 			using var scope = sp.CreateScope();
 			var scopedServices = scope.ServiceProvider;
 			var db = scopedServices.GetRequiredService<ApplicationDbContext>();
