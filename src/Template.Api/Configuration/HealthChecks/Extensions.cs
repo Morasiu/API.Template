@@ -3,7 +3,8 @@
 namespace Template.Api.Configuration.HealthChecks;
 
 public static class Extensions {
-	public static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services, IConfiguration configuration) {
+	public static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services,
+	                                                        IConfiguration configuration) {
 		services
 			.AddHealthChecks()
 			.AddNpgSql(configuration.GetConnectionString("Default")!);

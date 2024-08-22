@@ -15,7 +15,7 @@
 4. Specify what codes and data an endpoint can return using `ProducesResponseType` attribute
 5. Pass `cancellationToken` all the way down
 6. Do not send more than one request using mediator in an endpoint
-7. Assign values from routes to request if needed. I.e. Id from route
+7. Assign values from routes to request if needed. I.e. `Id` from route
 
 ## Validation
 
