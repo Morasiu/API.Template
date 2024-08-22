@@ -1,7 +1,7 @@
 ﻿using Template.Application.Requests.Products;
 using Template.Application.Requests.Products.Commands.CreateProduct;
 using Template.Application.Requests.Products.Commands.UpdateProduct;
-using Template.Tests.Shared.Seed;
+using Template.Tests.Shared.Generators;
 
 namespace Template.IntegrationTests.Controllers;
 
@@ -11,8 +11,9 @@ public class ProductControllerTests : BaseTest {
 	[Test]
 	public async Task Get_WhenDataIsCorrect_ShouldBeOk() {
 		// Arrange
-		await ApplicationDbContext.SeedWithAsync<ProductSeed>();
-		var products = await ApplicationDbContext.Products.ToListAsync();
+		var products = new ProductGenerator().Generate(10);
+		ApplicationDbContext.Products.AddRange(products);
+		await ApplicationDbContext.SaveChangesAsync();
 		// Act
 		var response = await HttpClient.GetAsync(Route);
 		// Assert
@@ -36,7 +37,7 @@ public class ProductControllerTests : BaseTest {
 	}
 
 	[Test]
-	public async Task Put_WhenEntityNotExist_ShouldBeOk() {
+	public async Task Put_WhenEntityNotExist_ShouldReturnNotFound() {
 		// Arrange
 		var request = new UpdateProductCommand {
 			Name = "Test"
@@ -48,13 +49,14 @@ public class ProductControllerTests : BaseTest {
 	}
 
 	[Test]
-	public async Task Put_WhenDataIsCorrect_ShouldBeOk() {
+	public async Task Put_WhenDataIsCorrect_ShouldReturnOk() {
 		// Arrange
-		await ApplicationDbContext.SeedWithAsync<ProductSeed>();
-		var product = await ApplicationDbContext.Products.FirstAsync();
+		var product = new ProductGenerator().Generate();
+		ApplicationDbContext.Products.Add(product);
+		await ApplicationDbContext.SaveChangesAsync();
 		var request = new UpdateProductCommand {
 			Id = product.Id,
-			Name = Guid.NewGuid().ToString().Substring(0, 10)
+			Name = "Test" + Guid.NewGuid()
 		};
 		// Act
 		var response = await HttpClient.PutAsJsonAsync($"{Route}/{request.Id}", request);

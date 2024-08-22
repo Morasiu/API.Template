@@ -19,14 +19,16 @@ try {
 	RunApplication();
 }
 
-
-catch (Exception ex) {
+// see https://github.com/dotnet/efcore/issues/29923
+catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") {
 	Log.Fatal(ex, "Unhandled exception");
 }
 finally {
 	Log.Information("Shut down complete");
 	Log.CloseAndFlush();
 }
+
+return;
 
 
 void RunApplication() {
@@ -48,19 +50,14 @@ void RunApplication() {
 	builder.Host.AddServicesValidationOnStart();
 
 	var app = builder.Build();
-	app.UseCors(policyBuilder =>
-	{
-		policyBuilder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-	});
-	app.UseSerilogRequestLogging(options =>
-	{
-		options.GetLevel = LogHelper.ExcludeHealthChecks;
-	});
+	app.UseCors(policyBuilder => { policyBuilder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
+	app.UseSerilogRequestLogging(options => { options.GetLevel = LogHelper.ExcludeHealthChecks; });
 	app.UseApplication();
 	// Configure the HTTP request pipeline.
 	if (!app.Environment.IsProduction()) {
 		app.UseSwaggerUi();
 	}
+
 	app.MapHealthChecks();
 	app.MapControllers();
 	app.Run();

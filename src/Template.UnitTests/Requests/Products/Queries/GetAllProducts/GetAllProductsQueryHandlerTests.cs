@@ -1,8 +1,6 @@
-﻿using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Template.Application.Requests.Products.Mappings;
+﻿using Template.Application.Requests.Products.Mappings;
 using Template.Application.Requests.Products.Queries.GetAllProducts;
-using Template.Tests.Shared.Seed;
+using Template.Tests.Shared.Generators;
 
 namespace Template.UnitTests.Requests.Products.Queries.GetAllProducts;
 
@@ -21,11 +19,12 @@ public class GetAllProductsQueryHandlerTests : BaseRequestTest
 	}
 
 	[Test]
-	public async Task Handle_NoData_ShouldBeSuccess()
+	public async Task Handle_WhenEmptyQuery_ShouldBeSuccess()
 	{
 		// Arrange
-		await ApplicationDbContext.SeedWithAsync<ProductSeed>();
-		var products = await ApplicationDbContext.Products.ToListAsync();
+		var products = new ProductGenerator().Generate(10);
+		ApplicationDbContext.Products.AddRange(products);
+		await ApplicationDbContext.SaveChangesAsync();
 		var request = new GetAllProductsQuery();
 		var sut = new GetAllProductsQueryHandler(ApplicationDbContext);
 		// Act

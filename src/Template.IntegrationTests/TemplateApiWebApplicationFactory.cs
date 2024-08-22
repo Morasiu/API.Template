@@ -17,10 +17,10 @@ namespace Template.IntegrationTests;
 
 public class TemplateApiWebApplicationFactory : WebApplicationFactory<IApiMarker> {
 	private readonly PostgreSqlContainer _postgreSqlContainer = new PostgreSqlBuilder()
-		                                                            .WithDatabase("application")
-		                                                            .WithUsername("postgres")
-		                                                            .WithPassword("password")
-		                                                            .Build();
+	                                                            .WithDatabase("application")
+	                                                            .WithUsername("postgres")
+	                                                            .WithPassword("password")
+	                                                            .Build();
 
 
 	public HttpClient HttpClient { get; private set; } = default!;
