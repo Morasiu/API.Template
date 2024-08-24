@@ -69,4 +69,4 @@ Remove all unnecessary files and start coding :)
 
 ## Credits
 
-Created by Hubert Morawski (hubert.morawski@herodot.com). Feel free to ask me any questions about it. 
+Created by Morasiu (morasiu2@gmail.com). Feel free to ask me any questions about it. 
